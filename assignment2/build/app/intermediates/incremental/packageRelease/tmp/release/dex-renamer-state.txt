@@ -1,0 +1,4 @@
+#Fri Feb 07 17:14:08 PST 2025
+base.0=/Users/eriks/CINS467/gitrepo/CINS467-S25-Erik-Flores-Siemsen/assignment1/build/app/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+path.0=classes.dex
+renamed.0=classes.dex

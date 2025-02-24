@@ -1,0 +1,26 @@
+image: cirrusci/flutter:latest
+
+stages:
+  - build
+  - deploy
+
+before_script:
+  - flutter config --enable-web
+  - flutter pub get
+
+build_web:
+  stage: build
+  script:
+    - flutter build web
+    - mv build/web public  # Move web build to public directory
+  artifacts:
+    paths:
+      - public  # Required for GitLab Pages
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deployment step (GitLab Pages handles this automatically)"
+  only:
+    - assignment2  # Run only on assignment2 branch
+
