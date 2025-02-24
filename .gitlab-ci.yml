@@ -5,24 +5,24 @@ stages:
   - deploy
 
 before_script:
-  -cd assignment2
+  - cd assignment2
   - flutter config --enable-web
   - flutter pub get
 
 build_web:
   stage: build
   script:
-    -cd assignment2
+    - cd assignment2
     - flutter build web
-    - mv build/web public  # Move web build to public directory
+    - mv build/web ../public  
   artifacts:
     paths:
-      - public  # Required for GitLab Pages
+      - public  
 
 deploy:
   stage: deploy
   script:
     - echo "Deployment step (GitLab Pages handles this automatically)"
   only:
-    - assignment2  # Run only on assignment2 branch
+    - assignment2 
 
