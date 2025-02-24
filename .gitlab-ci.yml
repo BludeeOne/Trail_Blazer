@@ -5,12 +5,14 @@ stages:
   - deploy
 
 before_script:
+  -cd assignment2
   - flutter config --enable-web
   - flutter pub get
 
 build_web:
   stage: build
   script:
+    -cd assignment2
     - flutter build web
     - mv build/web public  # Move web build to public directory
   artifacts:
