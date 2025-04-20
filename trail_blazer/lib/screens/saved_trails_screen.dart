@@ -1,6 +1,7 @@
-import 'package:final_project/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_project/helpers/trail.dart';
+
 
 class SavedTrailsScreen extends StatelessWidget {
   const SavedTrailsScreen({super.key});
@@ -10,6 +11,7 @@ class SavedTrailsScreen extends StatelessWidget {
     final trailsRef = FirebaseFirestore.instance.collection('trails');
 
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 6, 48, 20),
       appBar: AppBar(title: const Text('Saved Trails')),
       body: StreamBuilder<QuerySnapshot>(
         stream: trailsRef.snapshots(),
