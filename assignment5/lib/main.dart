@@ -7,6 +7,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -19,6 +21,8 @@ class MyApp extends StatelessWidget {
 }
 
 class DogInfoScreen extends StatefulWidget {
+  const DogInfoScreen({super.key});
+
   @override
   _DogInfoScreenState createState() => _DogInfoScreenState();
 }

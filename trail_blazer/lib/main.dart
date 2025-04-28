@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'screens/home_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/trail_record_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/account_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const TrailBlazerApp());
 }
 
@@ -21,6 +24,7 @@ class TrailBlazerApp extends StatelessWidget {
         colorSchemeSeed: Colors.deepOrange,
       ),
       home: const RootNav(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -41,9 +45,13 @@ class _RootNavState extends State<RootNav> {
     TrailRecordScreen(),
     SearchScreen(),
     AccountScreen(),
-    //nearby screen?
-    //more screens inside of account as drawers or seperate
   ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _index = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +62,8 @@ class _RootNavState extends State<RootNav> {
         unselectedItemColor: Color.fromARGB(255, 11, 98, 37),
         selectedItemColor: Color.fromARGB(255, 240, 146, 4),
         currentIndex: _index,
-        onTap: (value) => setState(() => _index = value),
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed, // Important: 5 tabs
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
@@ -66,6 +75,7 @@ class _RootNavState extends State<RootNav> {
     );
   }
 }
+
 
 
 //good green for bottom bar maybe Color.fromARGB(195, 4, 33, 13),
