@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'trail_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -75,7 +76,11 @@ class _SearchScreenState extends State<SearchScreen> {
                         title: Text(name),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         onTap: () {
-                          // Later: go to Trail Detail
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => TrailDetailScreen(firestoreTrail: trail),
+                            ),
+                          );
                         },
                       ),
                     );

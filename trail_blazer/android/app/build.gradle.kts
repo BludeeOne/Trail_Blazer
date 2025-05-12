@@ -4,6 +4,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 
+
+
 }
 
 android {
@@ -22,10 +24,14 @@ android {
 
     defaultConfig {
         applicationId = "com.example.final_project"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 34
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.add("-Xlint:deprecation")
+        options.compilerArgs.add("-Xlint:-options")
     }
 
     buildTypes {

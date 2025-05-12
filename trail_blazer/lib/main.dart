@@ -1,35 +1,18 @@
+import 'package:final_project/trail_blazer.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'screens/home_screen.dart';
-import 'screens/map_screen.dart';
-import 'screens/trail_record_screen.dart';
-import 'screens/search_screen.dart';
-import 'screens/account_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const TrailBlazerApp());
+  //WidgetsFlutterBinding.ensureInitialized();
+ // await Firebase.initializeApp();
+  runApp(TrailBlazerApp());
 }
 
-class TrailBlazerApp extends StatelessWidget {
-  const TrailBlazerApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Trail Blazer',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.deepOrange,
-      ),
-      home: const RootNav(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
 
-class RootNav extends StatefulWidget {
+
+
+
+/*class RootNav extends StatefulWidget {
   const RootNav({super.key});
 
   @override
@@ -40,7 +23,7 @@ class _RootNavState extends State<RootNav> {
   int _index = 0;
 
   final List<Widget> _screens = const [
-    HomeScreen(),
+    TrailBlazerApp(),
     MapScreen(),
     TrailRecordScreen(),
     SearchScreen(),
@@ -67,7 +50,6 @@ class _RootNavState extends State<RootNav> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
-          BottomNavigationBarItem(icon: Icon(Icons.directions_run), label: 'Record'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
         ],
@@ -76,7 +58,7 @@ class _RootNavState extends State<RootNav> {
   }
 }
 
-
+*/
 
 //good green for bottom bar maybe Color.fromARGB(195, 4, 33, 13),
 //purple in similar shade Color.fromARGB(210, 28, 4, 33),

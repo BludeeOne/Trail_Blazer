@@ -5,7 +5,7 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final options = ['Trails', 'Stats', 'Settings', 'History', 'About', 'Report', 'Account'];
+    final options = ['Trails', 'Stats'];
     return Scaffold(
       backgroundColor: Colors.indigoAccent,
       appBar: AppBar(title: const Text('Account')),
