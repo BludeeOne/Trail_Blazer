@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'auth_gate.dart';
+
 
 class TrailBlazerApp extends StatelessWidget {
-  const TrailBlazerApp({Key? key}) : super(key: key);
+  const TrailBlazerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+   Widget build(BuildContext context) {
     return MaterialApp(
-      home: TrailBlazerHome()
+      title: 'Trail Blazer',
+      theme: ThemeData(primarySwatch: Colors.green),
+      home: const AuthGate(),
     );
   }
 }

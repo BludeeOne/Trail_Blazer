@@ -1,9 +1,12 @@
-import 'package:final_project/trail_blazer.dart';
+import 'trail_blazer.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
-  //WidgetsFlutterBinding.ensureInitialized();
- // await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  //await FirebaseAuth.instance.signOut();
   runApp(TrailBlazerApp());
 }
 
@@ -11,7 +14,7 @@ void main() async {
 
 
 
-
+//old version of home screen
 /*class RootNav extends StatefulWidget {
   const RootNav({super.key});
 

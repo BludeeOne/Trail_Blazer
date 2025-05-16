@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // If you want user-specific trails
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  const MapScreen({Key? key, this.trailPoints, this.trailName})
+    : super(key: key);
+
+  final List<LatLng>? trailPoints;
+
+  final String? trailName;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -17,189 +18,151 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final Completer<GoogleMapController> _controller = Completer();
-  final Location _location = Location();
+  LatLng? _currentLatLng;
 
-  Future<void> _pickAndUploadPhoto() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null || _currentTrailId == null) return;
+  late final List<LatLng> _trailPoints =
+      widget.trailPoints != null ? List.of(widget.trailPoints!) : <LatLng>[];
 
-  final picker = ImagePicker();
-  final XFile? image = await picker.pickImage(source: ImageSource.camera); // or .gallery
+  final Set<Marker> _markers = {};
+  StreamSubscription<Position>? _positionStream;
 
-  if (image == null) return;
-
-  final File file = File(image.path);
-  final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-  final ref = FirebaseStorage.instance
-      .ref()
-      .child('trail_photos')
-      .child(user.uid)
-      .child(_currentTrailId!)
-      .child(fileName);
-
-  final uploadTask = await ref.putFile(file);
-
-  final downloadURL = await ref.getDownloadURL();
-
-  await FirebaseFirestore.instance.collection('trails').doc(_currentTrailId).update({
-    'photos': FieldValue.arrayUnion([downloadURL])
-  });
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Photo uploaded!')),
-  );
-}
-
-
-  LatLng? _currentPosition;
-  final List<LatLng> _trailCoordinates = [];
-
-  StreamSubscription<LocationData>? _locationSubscription;
-
-  bool _isRecording = false;
-  String? _currentTrailId;
+  bool get _liveTracking => widget.trailPoints == null;
 
   @override
   void initState() {
     super.initState();
-    _initLocation();
+    if (_liveTracking) {
+      _initLocationTracking();
+    } else if (_trailPoints.isNotEmpty) {
+      _addStaticMarkers();
+      _currentLatLng = _trailPoints.first;
+    }
   }
 
-  Future<void> _initLocation() async {
-    bool serviceEnabled = await _location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await _location.requestService();
-      if (!serviceEnabled) return;
-    }
+  void _addStaticMarkers() {
+    if (_trailPoints.isEmpty) return;
 
-    PermissionStatus permissionGranted = await _location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await _location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) return;
-    }
+    _markers
+      ..add(
+        Marker(
+          markerId: const MarkerId('start'),
+          position: _trailPoints.first,
+          infoWindow: const InfoWindow(title: 'Start'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
+          ),
+        ),
+      )
+      ..add(
+        Marker(
+          markerId: const MarkerId('end'),
+          position: _trailPoints.last,
+          infoWindow: const InfoWindow(title: 'End'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      );
+  }
 
-    final locationData = await _location.getLocation();
+  Future<void> _initLocationTracking() async {
+    final permission = await Permission.location.request();
+    if (!permission.isGranted) return;
+
+    final pos = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+      ),
+    );
+
+    final start = LatLng(pos.latitude, pos.longitude);
+
     setState(() {
-      _currentPosition = LatLng(locationData.latitude!, locationData.longitude!);
+      _currentLatLng = start;
+      _trailPoints.add(start);
+
+      _markers
+        ..add(
+          Marker(
+            markerId: const MarkerId('start'),
+            position: start,
+            infoWindow: const InfoWindow(title: 'Start'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueGreen,
+            ),
+          ),
+        )
+        ..add(
+          Marker(
+            markerId: const MarkerId('you'),
+            position: start,
+            infoWindow: const InfoWindow(title: 'You'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueAzure,
+            ),
+          ),
+        );
     });
-  }
 
-  Future<void> _startRecording() async {
-    final user = FirebaseAuth.instance.currentUser;
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 5,
+      ),
+    ).listen((Position newPos) async {
+      final next = LatLng(newPos.latitude, newPos.longitude);
 
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in first.')));
-      return;
-    }
-
-    // Create a new trail document
-    final trailDoc = await FirebaseFirestore.instance.collection('trails').add({
-      'userId': user.uid,
-      'startTime': Timestamp.now(),
-      'coordinates': [],
-      'isComplete': false,
-    });
-
-    _currentTrailId = trailDoc.id;
-    _trailCoordinates.clear();
-
-    _locationSubscription = _location.onLocationChanged.listen((newLocation) {
-      final newPos = LatLng(newLocation.latitude!, newLocation.longitude!);
       setState(() {
-        _currentPosition = newPos;
-        _trailCoordinates.add(newPos);
+        _currentLatLng = next;
+        _trailPoints.add(next);
+
+        _markers.removeWhere((m) => m.markerId == const MarkerId('you'));
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('you'),
+            position: next,
+            infoWindow: const InfoWindow(title: 'You'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueAzure,
+            ),
+          ),
+        );
       });
 
-      if (_currentTrailId != null) {
-        FirebaseFirestore.instance.collection('trails').doc(_currentTrailId).update({
-          'coordinates': FieldValue.arrayUnion([
-            {
-              'latitude': newLocation.latitude,
-              'longitude': newLocation.longitude,
-              'timestamp': Timestamp.now(),
-            }
-          ])
-        });
-      }
-    });
-
-    setState(() {
-      _isRecording = true;
-    });
-  }
-
-  Future<void> _stopRecording() async {
-    _locationSubscription?.cancel();
-
-    if (_currentTrailId != null) {
-      await FirebaseFirestore.instance.collection('trails').doc(_currentTrailId).update({
-        'endTime': Timestamp.now(),
-        'isComplete': true,
-      });
-    }
-
-    setState(() {
-      _isRecording = false;
-      _currentTrailId = null;
+      final map = await _controller.future;
+      map.animateCamera(CameraUpdate.newLatLng(next));
     });
   }
 
   @override
   void dispose() {
-    _locationSubscription?.cancel();
+    _positionStream?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Trail Tracker Map')),
-      body: _currentPosition == null
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: _currentPosition!,
-                    zoom: 17,
-                  ),
-                  
-                  myLocationEnabled: true,
-                  polylines: {
-                    Polyline(
-                      polylineId: const PolylineId('trail'),
-                      points: _trailCoordinates,
-                      color: Colors.blue,
-                      width: 5,
-                    ),
-                  },
-                  onMapCreated: (controller) {
-                    _controller.complete(controller);
-                  },
+      appBar: AppBar(title: Text(widget.trailName ?? 'Map')),
+      body:
+          (_currentLatLng == null && _trailPoints.isEmpty)
+              ? const Center(child: CircularProgressIndicator())
+              : GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _currentLatLng ?? _trailPoints.first,
+                  zoom: 16,
                 ),
-                Positioned(
-                  bottom: 80,
-                  left: 20,
-                  right: 20,
-                  child: ElevatedButton.icon(
-                    onPressed: _isRecording ? _pickAndUploadPhoto : null,
-                    icon: Icon(Icons.camera_alt),
-                    label: Text("Add Trail Photo"),
-                    ),
+                myLocationEnabled: _liveTracking,
+                myLocationButtonEnabled: true,
+                markers: _markers,
+                polylines: {
+                  Polyline(
+                    polylineId: const PolylineId('trail'),
+                    color: Colors.blue,
+                    width: 5,
+                    points: _trailPoints,
                   ),
-                Positioned(
-                  bottom: 20,
-                  left: 20,
-                  right: 20,
-                  child: ElevatedButton(
-                  onPressed: _isRecording ? _stopRecording : _startRecording,
-                  child: Text(_isRecording ? 'Stop Recording' : 'Start Recording'),
-                  ),
-                ),
-               ],
-            ),
-        );
+                },
+                onMapCreated: (controller) => _controller.complete(controller),
+              ),
+    );
   }
 }
-
