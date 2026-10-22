@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "422038871193",
+    "project_id": "trail-blazer-5c7f9",
+    "storage_bucket": "trail-blazer-5c7f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:422038871193:android:9e7704485cb70173282c08",
+        "android_client_info": {
+          "package_name": "com.example.final_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "422038871193-jp8cpuumj7umd8h5rhj7eoaom3o2p28h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpcCJyRZpcbw2aYOU9NTFbsGnUmZUNgh8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "422038871193-jp8cpuumj7umd8h5rhj7eoaom3o2p28h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

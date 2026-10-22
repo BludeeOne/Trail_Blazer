@@ -13,6 +13,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -23,6 +25,8 @@ class MyApp extends StatelessWidget {
 }
 
 class CameraLocationApp extends StatefulWidget {
+  const CameraLocationApp({super.key});
+
   @override
   _CameraLocationAppState createState() => _CameraLocationAppState();
 }
